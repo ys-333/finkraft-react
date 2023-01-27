@@ -9,8 +9,6 @@ const Home = () => {
 
   const handleChange = (e) => {
     setUserInput(e.target.value)
-    console.log(redirect)
-    return redirect('/grid')
   }
 
   return (

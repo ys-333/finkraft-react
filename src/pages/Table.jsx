@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { AgGridReact } from 'ag-grid-react'
 import Wrapper from '../components/UI/Wrapper'
 
@@ -8,7 +8,7 @@ import 'ag-grid-community/styles/ag-theme-alpine.css'
 const Table = () => {
   const [rowData, setRowData] = useState([])
 
-  const [columnDefs, setColumnDefs] = useState([])
+  const [columnDefs, setColumnDefs] = useState([{}])
 
   const fetchData = async () => {
     const response = await fetch(
@@ -22,38 +22,25 @@ const Table = () => {
     let firstInfo = data[0]
     let columnDefsHeading = []
     for (let key in firstInfo) {
-      columnDefsHeading.push({
-        field: key,
-        filter: 'agTextColumnFilter',
-        filterParams: {
-          textMatcher: ({ filter, value, filterText }) => {
-            const filterTextLowerCase = filterText.toLowerCase()
-            const valueLowerCase = value.toString().toLowerCase()
-            switch (filter) {
-              case 'contains':
-                return valueLowerCase.indexOf(filterTextLowerCase) >= 0
-              case 'notContains':
-                return valueLowerCase.indexOf(filterTextLowerCase) === -1
-              case 'equals':
-                return valueLowerCase === filterTextLowerCase
-              case 'notEqual':
-                return valueLowerCase != filterTextLowerCase
-              case 'startsWith':
-                return valueLowerCase.indexOf(filterTextLowerCase) === 0
-              case 'endsWith':
-                var index = valueLowerCase.lastIndexOf(filterTextLowerCase)
-                return (
-                  index >= 0 &&
-                  index === valueLowerCase.length - filterTextLowerCase.length
-                )
-              default:
-                // should never happen
-                console.warn('invalid filter type ' + filter)
-                return false
-            }
-          },
-        },
-      })
+      if (key === 'price') {
+        columnDefsHeading.push({
+          field: key,
+          filter: 'agNumberColumnFilter',
+          // filterParams: {
+          //   caseSensitive: true,
+          //   defaultOption: 'startsWith',
+          // },
+        })
+      } else {
+        columnDefsHeading.push({
+          field: key,
+          filter: 'agTextColumnFilter',
+          // filterParams: {
+          //   caseSensitive: true,
+          //   defaultOption: 'startsWith',
+          // },
+        })
+      }
     }
 
     setColumnDefs(columnDefsHeading)
@@ -63,12 +50,23 @@ const Table = () => {
     fetchData()
   }, [])
 
+  const defaultColDef = useMemo(() => {
+    return {
+      flex: 1,
+      maxWidth: 500,
+    }
+  }, [])
+
   return (
-    <div className="ag-theme-alpine" style={{ height: 400, width: 600 }}>
+    <div
+      className="ag-theme-alpine"
+      style={{ height: 600, width: '80%', margin: '5% auto' }}
+    >
       <AgGridReact
         pagination={true}
         rowData={rowData}
         columnDefs={columnDefs}
+        defaultColDef={defaultColDef}
       ></AgGridReact>
     </div>
   )
